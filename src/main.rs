@@ -6,6 +6,7 @@ mod editor;
 mod input;
 mod utils;
 
+use decorations::Decorations;
 use editor::Editor;
 use sdl2::{
     render::Canvas,
@@ -50,6 +51,17 @@ fn main() {
         }
     };
 
+    let file_name = arg_parse.get_file_path();
+
+    let file_name = {
+        if file_name.is_err() {
+            fs::File::create("new_file").unwrap();
+            PathBuf::from("new_file")
+        } else {
+            file_name.unwrap()
+        }
+    };
+
     let config: &mut Config =
         &mut parse_config::load_config(config_path.into_os_string().into_string().unwrap().clone());
 
@@ -70,7 +82,8 @@ fn main() {
         .present_vsync()
         .build()
         .unwrap();
-    let mut editor = Editor::init(PathBuf::from("src/main.rs"));
+    let mut editor = Editor::init(file_name.clone());
+    let mut decorations = Decorations::init(&file_name.display().to_string());
 
     let mut event_pump: EventPump = sdl.event_pump().unwrap();
 
@@ -81,7 +94,7 @@ fn main() {
             .expect("Failed to load font!")
     };
 
-    graphics::run(&mut editor, &mut canvas, &mut event_pump, config, &font);
+    graphics::run(&mut decorations, &mut editor, &mut canvas, &mut event_pump, config, &font);
 }
 
 fn help_msg() {

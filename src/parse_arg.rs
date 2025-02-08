@@ -1,4 +1,4 @@
-use std::env::Args;
+use std::{env::Args, path::PathBuf};
 
 pub struct ArgParse {
     pub args: Vec<String>,
@@ -34,5 +34,19 @@ impl ArgParse {
         }
 
         Err(1) /* No arg was found */
+    }
+
+    /// Returns the inputed file path if there is one
+    /// returns 1 if not found
+    pub fn get_file_path(&self) -> Result<PathBuf, i32> {
+        if self.args.len() == 2 && PathBuf::from(&self.args[1]).exists() {
+            return {
+                if PathBuf::from(&self.args[1]).is_file() {
+                    Ok(PathBuf::from(&self.args[1]))
+                } else {
+                    Err(1)
+                }
+            }
+        } else {Err(1)}
     }
 }

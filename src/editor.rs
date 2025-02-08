@@ -41,11 +41,18 @@ impl Editor {
         }
     }
 
-    pub fn render_loop(&self, canvas: &mut Canvas<Window>, config: &Config, font: &Font<'_, '_>) {
-        let mut y_offset: u32 = 0;
+    pub fn render_loop(
+        &self,
+        canvas: &mut Canvas<Window>,
+        config: &Config,
+        font: &Font<'_, '_>,
+        offset: Offset,
+    ) {
+        let mut y_offset: u32 = offset.y;
 
         for (i, line) in self.file_content.iter().enumerate() {
-            let line_number_width = self.render_line_number(canvas, i, config, font, y_offset);
+            let line_number_width =
+                self.render_line_number(canvas, i, config, font, y_offset) + offset.x;
             self.render_text(
                 canvas,
                 line,
@@ -57,7 +64,7 @@ impl Editor {
                 },
             );
             y_offset += font.height() as u32;
-            self.render_cursor(canvas, config, font, &self.cursor_pos, line_number_width);
+            self.render_cursor(canvas, config, font, &self.cursor_pos, line_number_width, &offset);
         }
     }
 
@@ -126,15 +133,16 @@ impl Editor {
         font: &Font<'_, '_>,
         cursor_pos: &CursorPos,
         line_number_width: u32,
+        offset: &Offset
     ) {
         match config.cursor.cursor_type {
             CursorType::Beam => {
-                self.render_beam_cursor(canvas, config, font, cursor_pos, line_number_width);
-            },
+                self.render_beam_cursor(canvas, config, font, cursor_pos, line_number_width, offset);
+            }
             CursorType::Line => {
-                self.render_line_cursor(canvas, config, font, cursor_pos, line_number_width);
-            },
-            CursorType::Hollow | CursorType::Box => todo!()
+                self.render_line_cursor(canvas, config, font, cursor_pos, line_number_width, offset);
+            }
+            CursorType::Hollow | CursorType::Box => todo!(),
         }
     }
 
@@ -145,12 +153,14 @@ impl Editor {
         font: &Font<'_, '_>,
         cursor_pos: &CursorPos,
         line_number_width: u32,
+        offset: &Offset
     ) {
         let (mut x, mut y) = font
             .size_of(self.file_content[cursor_pos.y].split_at(cursor_pos.x).0)
             .unwrap();
         x += line_number_width;
         y *= cursor_pos.y as u32 - self.first_rendered_index;
+        y += offset.y;
 
         let start_point = Point::from((x as i32, y as i32));
         let end_point = Point::from((x as i32, y as i32 + font.height()));
@@ -166,12 +176,14 @@ impl Editor {
         font: &Font<'_, '_>,
         cursor_pos: &CursorPos,
         line_number_width: u32,
+        offset: &Offset
     ) {
         let (mut x, mut y) = font
             .size_of(self.file_content[cursor_pos.y].split_at(cursor_pos.x).0)
             .unwrap();
         x += line_number_width;
         y *= cursor_pos.y as u32 - self.first_rendered_index;
+        y += offset.y;
 
         let start_point = Point::from((x as i32, y as i32));
         let end_point = Point::from((x as i32, y as i32 + font.height()));

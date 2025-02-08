@@ -1,12 +1,13 @@
+# More colors were needed
 [colors]
+alt_foreground = "#777777"
 background = "#0e0e0e"
 foreground = "#ffffff"
 cursor = "#00ffff"
-alt_foreground = "#777777"
 
 [cursor]
 cursor_type = "Beam" # Hollow beam line box
-cursor_thickness = 1
+cursor_thickness = 1 # Currently useless
 
 [line_num]
 relative = true
