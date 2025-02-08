@@ -4,10 +4,10 @@ alt_foreground = "#777777"
 background = "#0e0e0e"
 foreground = "#ffffff"
 cursor = "#00ffff"
+border = "#00ffff"
 
 [cursor]
-cursor_type = "Beam" # Hollow beam line box
-cursor_thickness = 1 # Currently useless
+cursor_thickness = 2
 
 [line_num]
 relative = true

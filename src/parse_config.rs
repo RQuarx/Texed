@@ -15,14 +15,12 @@ pub enum CursorType {
     Hollow,
     Beam,
     Line,
-    Box,
 }
 
 #[derive(Deserialize)]
 #[warn(dead_code)]
 pub struct Cursor {
-    pub cursor_type: CursorType,
-    pub cursor_thickness: i32,
+    pub cursor_thickness: u32,
 }
 
 #[derive(Deserialize)]
@@ -32,6 +30,7 @@ pub struct Colors {
     pub foreground: String,
     pub cursor: String,
     pub alt_foreground: String,
+    pub border: String,
 }
 
 #[derive(Deserialize)]

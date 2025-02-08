@@ -39,14 +39,21 @@ impl ArgParse {
     /// Returns the inputed file path if there is one
     /// returns 1 if not found
     pub fn get_file_path(&self) -> Result<PathBuf, i32> {
-        if self.args.len() == 2 && PathBuf::from(&self.args[1]).exists() {
+        if PathBuf::from(&self.args.last().unwrap()).exists() {
             return {
-                if PathBuf::from(&self.args[1]).is_file() {
-                    Ok(PathBuf::from(&self.args[1]))
+                if PathBuf::from(&self.args.last().unwrap()).is_file() {
+                    Ok(PathBuf::from(&self.args.last().unwrap()))
                 } else {
                     Err(1)
                 }
             }
-        } else {Err(1)}
+        } else {
+            let option = self.get_arg_option("-f", Some("--file"));
+            if option.is_ok() {
+                Ok(PathBuf::from(option.unwrap()))
+            } else {
+                Err(1)
+            }
+        }
     }
 }
