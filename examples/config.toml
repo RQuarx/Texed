@@ -4,6 +4,7 @@ alt_foreground = "#777777"
 background = "#0e0e0e"
 foreground = "#ffffff"
 cursor = "#00ffff"
+transparency = 0.5
 border = "#00ffff"
 
 [cursor]

@@ -42,7 +42,11 @@ impl Editor {
 
         Editor {
             file_content,
-            cursor_pos: CursorPos { x: 0, y: 0, max_x: 0 },
+            cursor_pos: CursorPos {
+                x: 0,
+                y: 0,
+                max_x: 0,
+            },
             scroll_offset: 0,
             editor_mode: EditorMode::Normal,
         }
@@ -68,9 +72,14 @@ impl Editor {
             } else if i > last_rendered_index {
                 continue;
             }
-            println!("{}", i);
             let line_number_width =
                 self.render_line_number(canvas, i, config, font, y_offset) + offset.x;
+            let line = if line.trim_end().is_empty() {
+                "\n"
+            } else {
+                line.trim_end()
+            };
+
             Editor::render_text(
                 canvas,
                 line,
@@ -141,6 +150,7 @@ impl Editor {
         font: &Font<'_, '_>,
         offset: Offset,
     ) {
+        let text = if text == "\n" { " " } else { text };
         let texture_creator = canvas.texture_creator();
 
         let surface = font.render(text).blended(color).unwrap();
@@ -166,8 +176,11 @@ impl Editor {
             EditorMode::Insert => {
                 self.render_beam_cursor(canvas, config, font, cursor_pos, offset);
             }
-            EditorMode::Normal | EditorMode::Command | EditorMode::Visual => {
+            EditorMode::Normal | EditorMode::Visual => {
                 self.render_hollow_cursor(canvas, config, font, cursor_pos, offset);
+            }
+            EditorMode::Command => {
+                self.render_block_cursor(canvas, config, font, cursor_pos, offset);
             }
             EditorMode::Replace => {
                 self.render_line_cursor(canvas, config, font, cursor_pos, offset);
@@ -250,5 +263,34 @@ impl Editor {
             font.height() as u32,
         );
         canvas.draw_rect(cursor_rect).unwrap();
+    }
+
+    fn render_block_cursor(
+        &self,
+        canvas: &mut Canvas<Window>,
+        config: &Config,
+        font: &Font<'_, '_>,
+        cursor_pos: &CursorPos,
+        offset: &Offset,
+    ) {
+        let x = font
+            .size_of(self.file_content[cursor_pos.y].split_at(cursor_pos.x).0)
+            .unwrap()
+            .0;
+        let font_size = font.size_of("_").unwrap();
+        let cursor_x = x + offset.x;
+        let cursor_y = offset.y + (cursor_pos.y as u32 * font.height() as u32);
+
+        let color = hex_to_color(&config.colors.cursor);
+        let transparency: u8 = (255.0 / config.colors.transparency).floor() as u8;
+
+        canvas.set_draw_color(Color::RGBA(color.r, color.g, color.b, transparency));
+        let cursor_rect = Rect::new(
+            cursor_x as i32,
+            cursor_y as i32,
+            font_size.0,
+            font.height() as u32,
+        );
+        canvas.fill_rect(cursor_rect).unwrap();
     }
 }

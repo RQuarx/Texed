@@ -1,10 +1,7 @@
 use sdl2::{render::Canvas, ttf::Font, video::Window, EventPump};
 
 use crate::{
-    decorations::Decorations,
-    editor::Editor,
-    input::event_handler,
-    parse_config::Config,
+    decorations::Decorations, editor::Editor, input::event_handler, parse_config::Config,
     utils::hex_to_color,
 };
 
@@ -23,26 +20,11 @@ pub fn run(
 ) {
     loop {
         if event_handler(event_pump, editor) {
-            render_window(canvas, decorations, editor, config, font);
+            canvas.set_draw_color(hex_to_color(&config.colors.background));
+            canvas.clear();
+            let offset = decorations.render_decorations(canvas, config, font);
+            editor.render_loop(canvas, config, font, offset);
+            canvas.present();
         }
     }
-}
-
-fn render_window(
-    canvas: &mut Canvas<Window>,
-    decorations: &mut Decorations,
-    editor: &mut Editor,
-    config: &Config,
-    font: &Font<'_, '_>,
-) {
-    canvas.set_draw_color(hex_to_color(&config.colors.background));
-    canvas.clear();
-    let offset = decorations.render_decorations(canvas, config, font);
-    editor.render_loop(
-        canvas,
-        config,
-        font,
-        offset,
-    );
-    canvas.present();
 }

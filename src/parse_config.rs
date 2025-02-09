@@ -30,6 +30,7 @@ pub struct Colors {
     pub foreground: String,
     pub cursor: String,
     pub alt_foreground: String,
+    pub transparency: f32,
     pub border: String,
 }
 
