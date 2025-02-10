@@ -15,3 +15,7 @@ pub fn hex_to_color(hex_input: &str) -> Color {
     let b = u8::from_str_radix(&hex_input[4..6], 16).expect("Invalid hex value for: BB");
     Color::RGB(r, g, b)
 }
+
+pub fn is_whitespace(input_str: &str, nth: usize) -> bool {
+    input_str.chars().nth(nth).unwrap().is_whitespace()
+}

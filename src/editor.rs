@@ -2,7 +2,12 @@ use std::{fs, path::PathBuf};
 
 use sdl2::{pixels::Color, rect::Rect, render::Canvas, ttf::Font, video::Window};
 
-use crate::{graphics::Offset, parse_config::Config, utils::hex_to_color};
+use crate::{
+    cursor::{render_beam_cursor, render_block_cursor, render_hollow_cursor, render_line_cursor},
+    graphics::Offset,
+    parse_config::Config,
+    utils::hex_to_color,
+};
 
 pub struct CursorPos {
     pub x: usize,
@@ -16,6 +21,7 @@ impl CursorPos {
     }
 }
 
+#[derive(PartialEq)]
 pub enum EditorMode {
     Insert,
     Normal,
@@ -35,10 +41,14 @@ impl Editor {
     pub fn init(file_path: PathBuf) -> Self {
         let file_path = file_path.canonicalize().expect("File path doesn't exist");
         let file_content = fs::read_to_string(&file_path).expect("File does not exist!");
-        let file_content: Vec<String> = file_content
+        let mut file_content: Vec<String> = file_content
             .lines()
             .map(|line| format!("{} ", line))
             .collect();
+
+        if file_content.is_empty() {
+            file_content.push(String::from(" "));
+        }
 
         Editor {
             file_content,
@@ -172,125 +182,22 @@ impl Editor {
         cursor_pos: &CursorPos,
         offset: &Offset,
     ) {
+        let offset_x = font
+            .size_of(self.file_content[cursor_pos.y].split_at(cursor_pos.x).0)
+            .unwrap()
+            .0;
+        let offset = &Offset {
+            x: offset_x + offset.x,
+            y: offset.y,
+        };
+
         match self.editor_mode {
-            EditorMode::Insert => {
-                self.render_beam_cursor(canvas, config, font, cursor_pos, offset);
-            }
+            EditorMode::Command => render_block_cursor(canvas, config, font, cursor_pos, offset),
+            EditorMode::Replace => render_line_cursor(canvas, config, font, cursor_pos, offset),
+            EditorMode::Insert => render_beam_cursor(canvas, config, font, cursor_pos, offset),
             EditorMode::Normal | EditorMode::Visual => {
-                self.render_hollow_cursor(canvas, config, font, cursor_pos, offset);
-            }
-            EditorMode::Command => {
-                self.render_block_cursor(canvas, config, font, cursor_pos, offset);
-            }
-            EditorMode::Replace => {
-                self.render_line_cursor(canvas, config, font, cursor_pos, offset);
+                render_hollow_cursor(canvas, config, font, cursor_pos, offset)
             }
         }
-    }
-
-    fn render_beam_cursor(
-        &self,
-        canvas: &mut Canvas<Window>,
-        config: &Config,
-        font: &Font<'_, '_>,
-        cursor_pos: &CursorPos,
-        offset: &Offset,
-    ) {
-        let x = font
-            .size_of(self.file_content[cursor_pos.y].split_at(cursor_pos.x).0)
-            .unwrap()
-            .0;
-        let cursor_x = x + offset.x;
-        let cursor_y = offset.y + (cursor_pos.y as u32 * font.height() as u32);
-
-        canvas.set_draw_color(hex_to_color(&config.colors.cursor));
-        let cursor_rect = Rect::new(
-            cursor_x as i32,
-            cursor_y as i32,
-            config.cursor.cursor_thickness,
-            font.height() as u32,
-        );
-        canvas.fill_rect(cursor_rect).unwrap();
-    }
-
-    fn render_line_cursor(
-        &self,
-        canvas: &mut Canvas<Window>,
-        config: &Config,
-        font: &Font<'_, '_>,
-        cursor_pos: &CursorPos,
-        offset: &Offset,
-    ) {
-        let x = font
-            .size_of(self.file_content[cursor_pos.y].split_at(cursor_pos.x).0)
-            .unwrap()
-            .0;
-        let font_size = font.size_of("_").unwrap();
-        let cursor_x = x + offset.x;
-        let cursor_y = offset.y + font_size.1 + (cursor_pos.y as u32 * font.height() as u32);
-
-        canvas.set_draw_color(hex_to_color(&config.colors.cursor));
-        let cursor_rect = Rect::new(
-            cursor_x as i32,
-            cursor_y as i32,
-            font_size.0,
-            config.cursor.cursor_thickness,
-        );
-        canvas.fill_rect(cursor_rect).unwrap();
-    }
-
-    fn render_hollow_cursor(
-        &self,
-        canvas: &mut Canvas<Window>,
-        config: &Config,
-        font: &Font<'_, '_>,
-        cursor_pos: &CursorPos,
-        offset: &Offset,
-    ) {
-        let x = font
-            .size_of(self.file_content[cursor_pos.y].split_at(cursor_pos.x).0)
-            .unwrap()
-            .0;
-        let font_size = font.size_of("_").unwrap();
-        let cursor_x = x + offset.x;
-        let cursor_y = offset.y + (cursor_pos.y as u32 * font.height() as u32);
-
-        canvas.set_draw_color(hex_to_color(&config.colors.cursor));
-        let cursor_rect = Rect::new(
-            cursor_x as i32,
-            cursor_y as i32,
-            font_size.0,
-            font.height() as u32,
-        );
-        canvas.draw_rect(cursor_rect).unwrap();
-    }
-
-    fn render_block_cursor(
-        &self,
-        canvas: &mut Canvas<Window>,
-        config: &Config,
-        font: &Font<'_, '_>,
-        cursor_pos: &CursorPos,
-        offset: &Offset,
-    ) {
-        let x = font
-            .size_of(self.file_content[cursor_pos.y].split_at(cursor_pos.x).0)
-            .unwrap()
-            .0;
-        let font_size = font.size_of("_").unwrap();
-        let cursor_x = x + offset.x;
-        let cursor_y = offset.y + (cursor_pos.y as u32 * font.height() as u32);
-
-        let color = hex_to_color(&config.colors.cursor);
-        let transparency: u8 = (255.0 / config.colors.transparency).floor() as u8;
-
-        canvas.set_draw_color(Color::RGBA(color.r, color.g, color.b, transparency));
-        let cursor_rect = Rect::new(
-            cursor_x as i32,
-            cursor_y as i32,
-            font_size.0,
-            font.height() as u32,
-        );
-        canvas.fill_rect(cursor_rect).unwrap();
     }
 }

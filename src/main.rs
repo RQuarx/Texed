@@ -2,6 +2,7 @@ mod parse_config;
 mod decorations;
 mod parse_arg;
 mod graphics;
+mod cursor;
 mod editor;
 mod input;
 mod utils;
@@ -30,7 +31,7 @@ fn main() {
     let arg_parse: parse_arg::ArgParse = parse_arg::ArgParse::init(env::args());
 
     if arg_parse.arg("-h", Some("--help")) {
-        help_msg();
+        parse_arg::ArgParse::help_msg();
         process::exit(EXIT_SUCCESS);
     } else if arg_parse.arg("-v", Some("--version")) {
         println!("Texed-0.0");
@@ -95,12 +96,4 @@ fn main() {
     };
 
     graphics::run(&mut decorations, &mut editor, &mut canvas, &mut event_pump, config, &font);
-}
-
-fn help_msg() {
-    println!("Texed [path] [options]\n");
-    println!("Options:");
-    println!("    -h, --help                    show this message");
-    println!("    -v, --version                 show the texed version");
-    println!("    -c, --config                  specify the config path");
 }

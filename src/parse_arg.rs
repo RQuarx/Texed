@@ -42,11 +42,17 @@ impl ArgParse {
         if PathBuf::from(&self.args.last().unwrap()).exists() {
             return {
                 if PathBuf::from(&self.args.last().unwrap()).is_file() {
-                    Ok(PathBuf::from(&self.args.last().unwrap()))
+                    if self.args.len() >= 2
+                        && self.args[self.args.len() - 2].chars().nth(0).unwrap() == '-'
+                    {
+                        Err(1)
+                    } else {
+                        Ok(PathBuf::from(&self.args.last().unwrap()))
+                    }
                 } else {
                     Err(1)
                 }
-            }
+            };
         } else {
             let option = self.get_arg_option("-f", Some("--file"));
             if option.is_ok() {
@@ -55,5 +61,14 @@ impl ArgParse {
                 Err(1)
             }
         }
+    }
+
+    pub fn help_msg() {
+        println!("Texed [path] [options]\n");
+        println!("Options:");
+        println!("    -h, --help                    show this message");
+        println!("    -v, --version                 show the texed version");
+        println!("    -c, --config                  specify the config path");
+        println!("    -f, --file                    specify the file path");
     }
 }
